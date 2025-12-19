@@ -1,0 +1,58 @@
+{
+  "name": "localmd",
+  "version": "1.0.0",
+  "description": "本地Markdown编辑器 - 类似Typora",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "pack": "electron-packager . LocalMD --platform=win32 --arch=x64 --out=dist --overwrite",
+    "dev": "electron ."
+  },
+  "keywords": [
+    "markdown",
+    "editor",
+    "electron"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "marked": "^11.1.0"
+  },
+  "build": {
+    "appId": "com.localmd.app",
+    "productName": "LocalMD",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "LocalMD",
+      "installerIcon": null,
+      "uninstallerIcon": null
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/**/*",
+      "node_modules/marked/**/*"
+    ]
+  }
+}

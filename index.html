@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalMD - Markdown编辑器</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="deepseek.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 工具栏 -->
+        <div id="toolbar">
+            <div class="toolbar-group">
+                <button id="btn-h1" title="标题 1" class="toolbar-btn">H1</button>
+                <button id="btn-h2" title="标题 2" class="toolbar-btn">H2</button>
+                <button id="btn-h3" title="标题 3" class="toolbar-btn">H3</button>
+            </div>
+            <div class="toolbar-separator"></div>
+            <div class="toolbar-group">
+                <button id="btn-bold" title="加粗 (Ctrl+B)" class="toolbar-btn">
+                    <strong>B</strong>
+                </button>
+                <button id="btn-italic" title="斜体 (Ctrl+I)" class="toolbar-btn">
+                    <em>I</em>
+                </button>
+                <button id="btn-strikethrough" title="删除线" class="toolbar-btn">
+                    <s>S</s>
+                </button>
+            </div>
+            <div class="toolbar-separator"></div>
+            <div class="toolbar-group">
+                <button id="btn-quote" title="引用" class="toolbar-btn">❝</button>
+                <button id="btn-code" title="代码" class="toolbar-btn">&lt;/&gt;</button>
+                <button id="btn-link" title="链接" class="toolbar-btn">🔗</button>
+                <button id="btn-image" title="图片" class="toolbar-btn">🖼️</button>
+            </div>
+            <div class="toolbar-separator"></div>
+            <div class="toolbar-group">
+                <button id="btn-ul" title="无序列表" class="toolbar-btn">• List</button>
+                <button id="btn-ol" title="有序列表" class="toolbar-btn">1. List</button>
+                <button id="btn-task" title="任务列表" class="toolbar-btn">☑ Task</button>
+            </div>
+            <div class="toolbar-right">
+                <button id="btn-ai-image" title="豆包生图" class="toolbar-btn">生图</button>
+                <button id="btn-ai-polish" title="AI 润色 (Ctrl+Shift+P)" class="toolbar-btn ai-btn">✨ AI润色</button>
+                <button id="btn-settings" title="设置" class="toolbar-btn">⚙️</button>
+                <button id="btn-theme" title="切换主题 (Ctrl+T)" class="toolbar-btn">🌓</button>
+                <span id="status-text" class="status-text">未保存</span>
+            </div>
+        </div>
+
+        <!-- 编辑器容器 -->
+        <div id="editor-container">
+            <!-- 编辑器区域 -->
+            <div id="editor-pane">
+                <textarea id="markdown-editor" placeholder="开始输入 Markdown..."></textarea>
+            </div>
+            
+            <!-- 分割线 -->
+            <div id="divider"></div>
+            
+            <!-- 预览区域 -->
+            <div id="preview-pane">
+                <div id="markdown-preview" class="markdown-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置弹窗 -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>设置</h2>
+                <button id="close-settings" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>AI 润色配置</h3>
+
+                    <div class="form-group">
+                        <label for="provider">供应商</label>
+                        <select id="provider">
+                            <option value="deepseek">DeepSeek</option>
+                            <option value="qwen">通义千问</option>
+                            <option value="zhipu">智谱 ChatGLM</option>
+                            <option value="moonshot">月之暗面 Kimi</option>
+                            <option value="baichuan">百川</option>
+                            <option value="doubao">字节豆包</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="api-key">API Key *</label>
+                        <input type="password" id="api-key" placeholder="请输入 API Key">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="base-url">API 地址</label>
+                        <input type="text" id="base-url" placeholder="https://api.xxx.com/v1">
+                    </div>
+
+                    <div class="form-group" id="model-select-group">
+                        <label for="model">模型</label>
+                        <select id="model"></select>
+                    </div>
+                    <div class="form-group" id="model-custom-group" style="display:none">
+                        <label for="model-custom">模型名</label>
+                        <input type="text" id="model-custom" placeholder="如 gpt-4">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="temperature">Temperature (创造性): <span id="temp-value">0.7</span></label>
+                        <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7">
+                        <small>0 = 更保守，1 = 更有创意</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="max-tokens">最大 Tokens</label>
+                        <input type="number" id="max-tokens" value="2000" min="100" max="4000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="system-prompt">系统提示词</label>
+                        <textarea id="system-prompt" rows="3" placeholder="你是一个专业的中文写作助手..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="test-api" class="btn-secondary">测试连接</button>
+                <button id="save-settings" class="btn-primary">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 生图弹窗 -->
+    <div id="image-gen-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>豆包生图</h2>
+                <button id="close-image-gen" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="image-prompt">描述 *</label>
+                    <textarea id="image-prompt" rows="4" placeholder="描述你想要的画面..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="image-model">模型</label>
+                    <select id="image-model">
+                        <option value="doubao-seedream-4-5-251128">doubao-seedream-4-5-251128</option>
+                        <option value="ep-20260130113655-b9c78">ep-20260130113655-b9c78</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="image-size">尺寸</label>
+                    <select id="image-size">
+                        <option value="2K">2K</option>
+                        <option value="1K">1K</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="do-image-gen" class="btn-primary">生成</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI 润色加载提示 -->
+    <div id="ai-loading" class="ai-loading" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="ai-loading-text">AI 正在润色中...</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.0/marked.min.js"></script>
+    <script src="renderer.js"></script>
+</body>
+</html>
